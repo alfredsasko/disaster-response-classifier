@@ -8,7 +8,10 @@
 {% endblock %}
 
 {% block content %}
-    <h1 class="text-center">Result</h1>
+    <div class="container">
+        <div class="page-header">
+            <h1 class="text-center">Classification Result</h1>
+        </div>
         <ul class="list-group">
             {% for category, classification in classification_result.items() %}
                 {% if classification == 1 %}
@@ -17,8 +20,20 @@
                     <li class="list-group-item list-group-item-dark text-center">{{category.replace('_', ' ').title()}}</li>
                 {% endif %}
             {% endfor %}
-
-        </div>
-    </div>
-
+      </ul>
+   </div>
 {% endblock %}
+
+{% for id in ids %}
+    <!-- <div class="d-flex justify-content-center" -->
+        <div id="{{id}}"</div>
+    <!-- </div> -->
+{% endfor %}
+
+<script type="text/javascript">
+    const graphs = {{graphJSON | safe}};
+    const ids = {{ids | safe}};
+    for(let i in graphs) {
+        Plotly.plot(ids[i], graphs[i].data, graphs[i].layout);
+    }
+</script>

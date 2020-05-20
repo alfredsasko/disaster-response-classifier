@@ -3,15 +3,18 @@
 # IMPORTS
 
 # Core libraries
+import os
 import sys
+from pathlib import Path
 import warnings
 import re
 import pickle
-import ipdb
+# import ipdb
 
 # Numerical computation and statistics
 import numpy as np
 import pandas as pd
+import scipy.sparse as sp
 
 # Databases
 from sqlalchemy import create_engine
@@ -39,12 +42,16 @@ from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 
-# Custom libraries
-from feature_extraction import CustomCountVectorizer
-
 # Natural language processing
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
+from wordcloud import WordCloud
+
+# Custom libraries
+sys.path.append(r'../')   # enable access to data package
+from data.process_data import save_data
+from data.process_data import TRAIN_TABLE_NAME
+from feature_extraction import CustomCountVectorizer
 from nltk_init import InitNLTK
 nltk_resources = {
     'punkt': 'tokenizers/punkt',
@@ -54,6 +61,10 @@ nltk_resources = {
     'omw': 'corpora/omw'
 }
 InitNLTK(nltk_resources).download_resources()
+
+
+DOCUMENT_TERM_MATRIX_NAME = 'document_term_matrix.npz'
+
 
 def load_data(database_filepath, table_name):
     '''Loads table from database and returns input
@@ -203,6 +214,7 @@ def build_model():
 
     return cv
 
+
 def evaluate_model(model, X_test, Y_test, category_names):
     '''Show precision, recall, and f1-score of the model'''
 
@@ -221,17 +233,35 @@ def save_model(model, model_filepath):
         pickle.dump(model, f, pickle.HIGHEST_PROTOCOL)
 
 
-def main():
-    if len(sys.argv) == 4:
-        database_filepath, table_name, model_filepath  = sys.argv[1:]
-        print('Loading data...\n    DATABASE: {}'.format(database_filepath))
-        X, Y, category_names = load_data(database_filepath, table_name)
+def load_model(model_filepath):
+    '''Load the model from a pickle file'''
 
-        const_feature_msk = Y.columns[Y.columns.str.contains('child_alone')]
+    with open(model_filepath, 'rb') as f:
+        model = pickle.load(f, encoding='unicode')
+    return model
+
+def save_document_term_matrix(X, model, document_term_matrix_filepath):
+    '''Saves document-term matrix as sparse matrix in *.npz file'''
+
+    vectorizer = model.best_estimator_.named_steps['vectorizer']
+    X_term = vectorizer.transform(X)
+    sp.save_npz(document_term_matrix_filepath, X_term)
+
+def main():
+    if len(sys.argv) == 3:
+        database_filepath, model_filepath  = sys.argv[1:]
+
+        print('Loading data...\n    DATABASE: {}, TABLE: {}'
+              .format(database_filepath, TRAIN_TABLE_NAME))
+        X, Y, category_names = load_data(database_filepath, TRAIN_TABLE_NAME)
+
         X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
 
         print('Building model...')
         model = build_model()
+
+        # print('Loading model...')
+        # model = load_model(model_filepath)
 
         print('Training model...')
         model.fit(X_train, Y_train)
@@ -243,16 +273,20 @@ def main():
         evaluate_model(model, X_test, Y_test, category_names)
 
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
-        save_model(model, model_filepath)
+        save_data(X_term, model_filepath)
 
-        print('Trained model saved!')
+        print('Saving document-term matrix...\n'
+              '    DOCUMENT-TERM MATRIX: {}'
+              .format(DOCUMENT_TERM_MATRIX_NAME))
+        save_document_term_matrix(X, model, DOCUMENT_TERM_MATRIX_NAME)
+
+        print('Trained model and document-term matrix saved!')
 
     else:
         print('Please provide the filepath of the disaster messages database '\
-              'as the first argument, table name as second argument and the ' \
-              'filepath of the pickle file to save the model to as the '      \
-              ' third argument. \n\nExample: python train_classifier.py ' \
-              '../data/disaster_response.db train_data model.pickle')
+              'as the first argument, and the filepath of the pickle file to '\
+              'save the model to as the third argument. \n\nExample: python ' \
+              'train_classifier.py ../data/disaster_response.db model.pickle')
 
 if __name__ == '__main__':
     main()

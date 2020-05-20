@@ -7,7 +7,6 @@
 # Core libraries
 from functools import partial
 import re
-import ipdb
 
 # 3rd party libraries
 import numpy as np
