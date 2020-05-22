@@ -3,16 +3,15 @@ and stores them in sqlite database.
 '''
 # Imports
 import sys
-import numpy as np
 import pandas as pd
-import scipy.sparse as sp
 from sqlalchemy import create_engine
 
 
 TRAIN_TABLE_NAME = 'train_data'
 
+
 def load_data(messages_filepath, categories_filepath):
-    '''Loads message and categories data from csv files to dataframe'''
+    '''Merge message and categories data from csv files to dataframe'''
 
     messages = pd.read_csv(messages_filepath)
     categories = pd.read_csv(categories_filepath)
@@ -22,7 +21,7 @@ def load_data(messages_filepath, categories_filepath):
 
 
 def clean_data(df):
-    '''Tranforms categories column to separate variables'''
+    '''Tranform categories column to separate variables'''
 
     # Split categories column to category label columns
     categories = df['categories'].str.split(';', expand=True)
@@ -64,21 +63,23 @@ def clean_data(df):
 
     return df
 
-def save_data(df, database_filepath, **kws):
+
+def save_data(df, database_filepath, **to_sql_kws):
     '''Saves dataframe to sqlite database'''
     try:
         engine = create_engine('sqlite:///' + database_filepath)
-        df.to_sql(con=engine, **kws)
+        df.to_sql(con=engine, **to_sql_kws)
     except Exception as exc:
         print('Dataframe not stored:', exc)
+
 
 def main():
     if len(sys.argv) == 5:
 
         (messages_filepath,
-        categories_filepath,
-        database_filepath,
-        table_mode) = sys.argv[1:]
+         categories_filepath,
+         database_filepath,
+         table_mode) = sys.argv[1:]
 
         print('Loading data...\n    MESSAGES: {}\n    CATEGORIES: {}'
               .format(messages_filepath, categories_filepath))
@@ -95,12 +96,13 @@ def main():
         print('Cleaned training data saved to database!')
 
     else:
-        print('Please provide the filepaths of the messages and categories ' \
-              'datasets as the first and second argument respectively, as '  \
-              'well as the filepath of the database and table mode {"fail",' \
-              '"replace", "append"} as the third and fourth argument.\n\n'   \
-              'Example: python process_data.py disaster_messages.csv '       \
+        print('Please provide the filepaths of the messages and categories '
+              'datasets as the first and second argument respectively, as '
+              'well as the filepath of the database and table mode {"fail",'
+              '"replace", "append"} as the third and fourth argument.\n\n'
+              'Example: python process_data.py disaster_messages.csv '
               'disaster_categories.csv disaster_response.db replace')
+
 
 if __name__ == '__main__':
     main()
