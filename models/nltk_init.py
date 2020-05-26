@@ -3,6 +3,7 @@ import os
 from nltk.downloader import Downloader
 from nltk import data
 
+
 class InitNLTK(Downloader):
     '''Check and download necessary nltk resources
 

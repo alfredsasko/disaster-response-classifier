@@ -1,10 +1,12 @@
 '''Modul for extraction of custom features from text
     - CustomCoutVectorizer with tagging and lemmatization
-    - TextLengthExtractor extracting lengt of the text'''
+    - TextLengthExtractor extracting length of the text
+'''
 
 # IMPORTS
 
 # Core libraries
+import warnings
 from functools import partial
 import re
 
@@ -19,6 +21,7 @@ from sklearn.base import TransformerMixin
 
 from nltk import pos_tag
 from nltk.tokenize import sent_tokenize
+
 
 class CustomCountVectorizer(CountVectorizer):
     '''CountVectorizer with custom word replacment, text tagging
@@ -41,8 +44,8 @@ class CustomCountVectorizer(CountVectorizer):
 
             **kws: Keyword agruments passed to CountVectorizer init method
 
-            NOTE: tag name need to fullmatch tokenizer pattern otherwise warnign
-                  is raised. All tagas are converted in anlyzer to comply
+            NOTE: tag name need to fullmatch tokenizer pattern otherwise
+                warnig is raised. All tags are converted in anlyzer to comply
                   '#' + tag.upper() (ex: cardinaldigit to #CARDNIALDIGIT)
 
         Attributes:
@@ -54,7 +57,6 @@ class CustomCountVectorizer(CountVectorizer):
         Methods:
             plot(self [,topk, sortby, ascending]): plots distribution of tokens
     '''
-
     def __init__(self, punct_regex=None, tag_regex_dict=dict(),
                  replace_regex_dict=dict(), lemmatizer=None,
                  input='content', encoding='utf-8',
@@ -66,7 +68,7 @@ class CustomCountVectorizer(CountVectorizer):
                  vocabulary=None, binary=False, dtype=np.int64):
 
         super().__init__(input, encoding, decode_error, strip_accents,
-                         lowercase, preprocessor, tokenizer,stop_words,
+                         lowercase, preprocessor, tokenizer, stop_words,
                          token_pattern, ngram_range, analyzer, max_df,
                          min_df, max_features, vocabulary, binary, dtype)
 
@@ -86,7 +88,8 @@ class CustomCountVectorizer(CountVectorizer):
         match = re.search(ambiguity_regex, doc, flags=re.IGNORECASE)
 
         if match:
-            self._ambiguous_tags_ = self._ambiguous_tags_.union(set(match.groups()))
+            self._ambiguous_tags_ = (self._ambiguous_tags_
+                                     .union(set(match.groups())))
 
         # Normalize cases and unicode characters
         preprocess = super().build_preprocessor()
@@ -119,15 +122,14 @@ class CustomCountVectorizer(CountVectorizer):
             tokenized_tag = tokenizer(tag)[0]
 
             assert tag == tokenized_tag, \
-            'Can not build tokenizer! Tag {} does not ' \
-            'match token pattern. Tokenize tag is {}.' \
-            .format(tag, tokenized_tag)
+                'Can not build tokenizer! Tag {} does not ' \
+                'match token pattern. Tokenize tag is {}.' \
+                .format(tag, tokenized_tag)
 
     def _lemmatize(self, doc, tokenizer):
         '''Lemmatize document/text'''
 
         return [self.lemmatizer(token) for token in tokenizer(doc)]
-
 
     def build_tokenizer(self):
         '''Return a custom function that splits a string into
@@ -245,6 +247,7 @@ class TextLengthExtractor(BaseEstimator, TransformerMixin):
         X_len = X.str.len()
         return X_len.values.reshape(-1, 1)
 
+
 class StartingVerbExtractor(BaseEstimator, TransformerMixin):
 
     def __init__(self, tokenizer):
@@ -256,7 +259,7 @@ class StartingVerbExtractor(BaseEstimator, TransformerMixin):
             pos_tags = pos_tag(self.tokenizer(sentence))
             try:
                 first_word, first_tag = pos_tags[0]
-            except Exception as ex:
+            except Exception:
                 return False
             if first_tag in ['VB', 'VBP'] or first_word == 'RT':
                 return True

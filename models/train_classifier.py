@@ -3,53 +3,33 @@
 # IMPORTS
 
 # Core libraries
-import os
 import sys
-from pathlib import Path
-import warnings
-import re
 import pickle
-# import ipdb
+import warnings
 
-# Numerical computation and statistics
-import numpy as np
+# Third party imports
 import pandas as pd
 import scipy.sparse as sp
 
-# Databases
 from sqlalchemy import create_engine
 
-from sklearn.exceptions import ConvergenceWarning
-warnings.filterwarnings(action='ignore', category=ConvergenceWarning)
-warnings.filterwarnings(action='ignore', category=UserWarning)
-
-# Feature selection
-from sklearn.feature_selection import SelectFromModel
-
-# Estimators
-from sklearn.preprocessing import StandardScaler
+from sklearn.exceptions import UndefinedMetricWarning
+from sklearn.pipeline import Pipeline
 from sklearn.feature_extraction.text import TfidfTransformer
 from sklearn.svm import LinearSVC
-
-# Pipelines
-from sklearn.pipeline import Pipeline
-
-# Multi-label classification
+from sklearn.feature_selection import SelectFromModel
 from sklearn.multiclass import OneVsRestClassifier
-
-# Evaluation
 from sklearn.model_selection import GridSearchCV
 from sklearn.model_selection import train_test_split
 from sklearn.metrics import classification_report
 
-# Natural language processing
 from nltk.corpus import stopwords
 from nltk.stem.wordnet import WordNetLemmatizer
-from wordcloud import WordCloud
+
+# Environment setting
+sys.path.append(r'../')   # enable access to data package
 
 # Custom libraries
-sys.path.append(r'../')   # enable access to data package
-from data.process_data import save_data
 from data.process_data import TRAIN_TABLE_NAME
 from feature_extraction import CustomCountVectorizer
 from nltk_init import InitNLTK
@@ -62,13 +42,12 @@ nltk_resources = {
 }
 InitNLTK(nltk_resources).download_resources()
 
-
+# Global variables
 DOCUMENT_TERM_MATRIX_NAME = 'document_term_matrix.npz'
 
 
 def load_data(database_filepath, table_name):
-    '''Loads table from database and returns input
-    and output dataframe.
+    '''Loads table from database and returns input, output dataframe.
 
     Args
         database_filepath: String, location of database
@@ -89,10 +68,11 @@ def load_data(database_filepath, table_name):
 
     return X, Y, category_names
 
+
 def build_vectorizer():
     """
     Build CustomCountVectorizer instance (replacment of tokenizer function
-    in project). It enables custom tagging, token replacment, tokenizing
+    in project). It enables custom tagging, token replacement, tokenizing
     and lemmatizing.
 
     Returns:
@@ -109,10 +89,10 @@ def build_vectorizer():
 
     # Regex expression matching custom tags
     regex_list = [
-        r'(?:(?:(?:URL:?)?http[s]?\s?:?\s?(?://)?(?:www.)?)|(?:www))' \
-        r'(?:(?:(?:bit.ly|ow.ly|j.mp|tinyurl.com|tr.im|tl.gd'         \
-        r'|goo.gl\s?fb|ur14.eu|su.pr|ff.im|goto.gg|uurl.in|url.ie'    \
-        r'|digg.com|rep.ly|twitpic.com|nxy.in)\s?)|[a-zA-Z]|[0-9]'    \
+        r'(?:(?:(?:URL:?)?http[s]?\s?:?\s?(?://)?(?:www.)?)|(?:www))'
+        r'(?:(?:(?:bit.ly|ow.ly|j.mp|tinyurl.com|tr.im|tl.gd'
+        r'|goo.gl\s?fb|ur14.eu|su.pr|ff.im|goto.gg|uurl.in|url.ie'
+        r'|digg.com|rep.ly|twitpic.com|nxy.in)\s?)|[a-zA-Z]|[0-9]'
         r'|[$-_@.&+#]|[!*\(\),]|(?:%[0-9a-fA-F][0-9a-fA-F]))+',
         r'(?:19[0-9]{2})|(?:20(?:(?:[0-1][0-9])|(?:20)))',
         r'[1-9](?:[0-9])*\s?,?\s?000',
@@ -129,8 +109,8 @@ def build_vectorizer():
     # Update stopwords by CountVectorizer warning suggestion
     stop_words = stopwords.words('english')
     stop_words.extend(["'d", "'ll", "'re", "'s", "'ve", 'could', 'doe', 'ha',
-                      'might', 'must', "n't", 'need', 'sha', 'wa', 'wo',
-                      'would', 'n'])
+                       'might', 'must', "n't", 'need', 'sha', 'wa', 'wo',
+                       'would', 'n'])
 
     # Instantiate lemmatizer
     lemmatizer = WordNetLemmatizer()
@@ -178,6 +158,7 @@ def build_model():
                     LinearSVC(penalty='l1',
                               dual=False,
                               tol=1e-3,
+                              max_iter=3000,
                               random_state=random_state)
                 )),
 
@@ -185,7 +166,7 @@ def build_model():
                 # remedy unbalanced dataset
                 ('svm', LinearSVC(class_weight='balanced',
                                   dual=False,
-                                  max_iter=1000,
+                                  max_iter=3000,
                                   random_state=random_state))
             ]),
             n_jobs=-1
@@ -193,10 +174,10 @@ def build_model():
     ])
 
     # Using bi-grams significantly imporved f1_macro score but introduced
-    # severe overfitting. Using feature selection, tuning of penalty parameter C
-    # have succeeded in reducing model overfitting from 50% to 17% while model
-    # f1_macro score reduced slightly from 46% to 42%.
-    parameters= {
+    # severe overfitting. Using feature selection, tuning of penalty
+    # parameter C has succeeded in reducing model overfitting from 50% to 17%
+    # while model f1_macro score reduced slightly from 46% to 42%.
+    parameters = {
         'vectorizer__ngram_range': [(1, 1), (1, 2)],
         'classifier__estimator__svm__C': [0.01, 0.1, 1]
     }
@@ -221,7 +202,9 @@ def evaluate_model(model, X_test, Y_test, category_names):
     Y_true = Y_test
     Y_pred = model.predict(X_test)
 
-    print(classification_report(Y_true, Y_pred, target_names=category_names))
+    print(classification_report(Y_true, Y_pred,
+                                target_names=category_names,
+                                zero_division=0))
 
     return None
 
@@ -240,22 +223,31 @@ def load_model(model_filepath):
         model = pickle.load(f, encoding='unicode')
     return model
 
+
 def save_document_term_matrix(X, model, document_term_matrix_filepath):
-    '''Saves document-term matrix as sparse matrix in *.npz file'''
+    '''Saves document-term matrix as sparse matrix in *.npz file
+
+    Args:
+        X: Input series of size # of documents
+        model: Fitted GridSearchCV object
+        document_term_matrix_filepath: String as document term matrix file path
+    '''
 
     vectorizer = model.best_estimator_.named_steps['vectorizer']
     X_term = vectorizer.transform(X)
     sp.save_npz(document_term_matrix_filepath, X_term)
 
+
 def main():
     if len(sys.argv) == 3:
-        database_filepath, model_filepath  = sys.argv[1:]
+        database_filepath, model_filepath = sys.argv[1:]
 
         print('Loading data...\n    DATABASE: {}, TABLE: {}'
               .format(database_filepath, TRAIN_TABLE_NAME))
         X, Y, category_names = load_data(database_filepath, TRAIN_TABLE_NAME)
 
-        X_train, X_test, Y_train, Y_test = train_test_split(X, Y, test_size=0.2)
+        X_train, X_test, Y_train, Y_test = train_test_split(X, Y,
+                                                            test_size=0.2)
 
         print('Building model...')
         model = build_model()
@@ -264,7 +256,9 @@ def main():
         # model = load_model(model_filepath)
 
         print('Training model...')
-        model.fit(X_train, Y_train)
+        with warnings.catch_warnings():
+            warnings.simplefilter('ignore', category=UndefinedMetricWarning)
+            model.fit(X_train, Y_train)
 
         print('Evaluating model on train sample...')
         evaluate_model(model, X_train, Y_train, category_names)
@@ -273,7 +267,7 @@ def main():
         evaluate_model(model, X_test, Y_test, category_names)
 
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
-        save_data(X_term, model_filepath)
+        save_model(model, model_filepath)
 
         print('Saving document-term matrix...\n'
               '    DOCUMENT-TERM MATRIX: {}'
@@ -283,10 +277,11 @@ def main():
         print('Trained model and document-term matrix saved!')
 
     else:
-        print('Please provide the filepath of the disaster messages database '\
-              'as the first argument, and the filepath of the pickle file to '\
-              'save the model to as the third argument. \n\nExample: python ' \
+        print('Please provide the filepath of the disaster messages database '
+              'as the first argument, and the filepath of the pickle file to '
+              'save the model to as the third argument. \n\nExample: python '
               'train_classifier.py ../data/disaster_response.db model.pickle')
+
 
 if __name__ == '__main__':
     main()
