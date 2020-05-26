@@ -30,7 +30,6 @@ from nltk.stem.wordnet import WordNetLemmatizer
 sys.path.append(r'../')   # enable access to data package
 
 # Custom libraries
-from data.process_data import save_data
 from data.process_data import TRAIN_TABLE_NAME
 from feature_extraction import CustomCountVectorizer
 from nltk_init import InitNLTK
@@ -268,7 +267,7 @@ def main():
         evaluate_model(model, X_test, Y_test, category_names)
 
         print('Saving model...\n    MODEL: {}'.format(model_filepath))
-        save_data(model, model_filepath)
+        save_model(model, model_filepath)
 
         print('Saving document-term matrix...\n'
               '    DOCUMENT-TERM MATRIX: {}'
