@@ -67,10 +67,15 @@ class CustomCountVectorizer(CountVectorizer):
                  max_df=1.0, min_df=1, max_features=None,
                  vocabulary=None, binary=False, dtype=np.int64):
 
-        super().__init__(input, encoding, decode_error, strip_accents,
-                         lowercase, preprocessor, tokenizer, stop_words,
-                         token_pattern, ngram_range, analyzer, max_df,
-                         min_df, max_features, vocabulary, binary, dtype)
+        super().__init__(input=input, encoding=encoding,
+                         decode_error=decode_error, strip_accents=strip_accents,
+                         lowercase=lowercase, preprocessor=preprocessor,
+                         tokenizer=tokenizer, stop_words=stop_words,
+                         token_pattern=token_pattern,
+                         ngram_range=ngram_range, analyzer=analyzer,
+                         max_df=max_df, min_df=min_df,
+                         max_features=max_features, vocabulary=vocabulary,
+                         binary=binary, dtype=dtype)
 
         self.punct_regex = punct_regex
         self.tag_regex_dict = tag_regex_dict
