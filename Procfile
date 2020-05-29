@@ -1,1 +1,1 @@
-web: cd app && gunicorn app.run:app
+web: cd app && gunicorn run:app
