@@ -24,16 +24,11 @@ from figures.figures import return_data_figures
 from figures.figures import return_result_figures
 
 # Handle user input
-if len(sys.argv) == 1:
-    database_filepath = '../data/disaster_response.db'
-    model_filepath = '../models/model.pickle'
-
-elif len(sys.argv) == 3:
+if len(sys.argv) == 3:
     database_filepath, model_filepath = sys.argv[1:]
 else:
-    print('Please provide the filepaths of the database and model respectively'
-          '\n\nExample: python run.py ../data/disaster_response.db '
-          '../models/model.pickle')
+    database_filepath = '../data/disaster_response.db'
+    model_filepath = '../models/model.pickle'
 
 app = Flask(__name__)
 
