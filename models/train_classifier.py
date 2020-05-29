@@ -31,8 +31,8 @@ sys.path.append(r'../')   # enable access to data package
 
 # Custom libraries
 from data.process_data import TRAIN_TABLE_NAME
-from feature_extraction import CustomCountVectorizer
-from nltk_init import InitNLTK
+from models.feature_extraction import CustomCountVectorizer
+from models.nltk_init import InitNLTK
 nltk_resources = {
     'punkt': 'tokenizers/punkt',
     'wordnet': 'corpora/wordnet',
