@@ -24,16 +24,11 @@ from figures.figures import return_data_figures
 from figures.figures import return_result_figures
 
 # Handle user input
-if len(sys.argv) == 1:
-    database_filepath = '../data/disaster_response.db'
-    model_filepath = '../models/model.pickle'
-
-elif len(sys.argv) == 3:
+if len(sys.argv) == 3:
     database_filepath, model_filepath = sys.argv[1:]
 else:
-    print('Please provide the filepaths of the database and model respectively'
-          '\n\nExample: python run.py ../data/disaster_response.db '
-          '../models/model.pickle')
+    database_filepath = '../data/disaster_response.db'
+    model_filepath = '../models/model.pickle'
 
 app = Flask(__name__)
 
@@ -71,6 +66,7 @@ def go():
     # Use model to predict classification for query
     classification_labels = model.predict([query])[0]
     positive_label_msk = (classification_labels == 1)
+
     classification_results = dict(zip(
         category_names[positive_label_msk],
         classification_labels[positive_label_msk]
@@ -97,7 +93,8 @@ def go():
 
 
 def main():
-    app.run(host='0.0.0.0', port=3001, debug=True)
+    app.debug = False
+    app.run()
 
 
 if __name__ == '__main__':
