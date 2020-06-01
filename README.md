@@ -17,7 +17,7 @@ The purpose of the series is to provide a practical recipe on how to make this a
 The purpose of this repository is to share with fellow data scientists on how to design and deploy Natural Language Processing application following the CRISP-DM process.
 
 ## 2. Results<a name="results"></a>
-Passing all CRISP-DM phases you should end up with deployed _Disaster Response Workflow Tool_ at Heroku. You can have fun and play with a tool [here](#). Refer to this [series article](#) for more details.
+Passing all CRISP-DM phases you should end up with deployed _Disaster Response Workflow Tool_ using Elastic Beanstalk (AWS). You can have fun and play with a tool [here](http://drp-app-prod.eu-central-1.elasticbeanstalk.com/). Refer to this [series article](#) for more details.
 
 ### 2.1 Business Understanding
 During natural disasters, response teams are overwhelmed by thousands of messages either directly or through social media. They need to filter relevant requests, analyze, prioritize them to make sure that proper organization responds timely to help impacted individuals.
@@ -127,7 +127,7 @@ Thousands of messages need to be analyzed each day during a disaster. The servic
 On the other hand the performance of those models can be worse which can be improved by using a more frequent re-training cycle. This would recure functionality to enable users to correct wrong classification results to further improve model performance.
 
 #### 2.5.2 Demo
-To engage users to see the model in the action flask web application was developed and deployed at Heroku. You can try it [here](#). It is possible to submit a message to classify and shows statistics of training dataset as label distribution and word frequencies as a word cloud.
+To engage users to see the model in the action flask web application was developed and deployed using Elastic Beanstalk (AWS). You can try it [here](http://drp-app-prod.eu-central-1.elasticbeanstalk.com/). It is possible to submit a message to classify and shows statistics of training dataset as label distribution and word frequencies as a word cloud.
 
 <div style="overflow: hidden; padding: 20px 0px">
     <img src="/assets/08_workflow_tool_landing.png" style="float: left; width: 100%;"/>
