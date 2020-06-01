@@ -1,0 +1,24 @@
+# Ignore git related files
+.git
+.gitignore
+.ipynb_checkpoints/
+__pycache__/
+
+# Ignore md files
+*.md
+*.txt
+!requirements.txt
+
+# keep only modules and data files
+assets/*
+data/*
+!data/*.py
+!data/*.db
+
+figures/*
+!figures/*.py
+
+models/*
+!models/*.py
+!models/*.npz
+!models/*.pickle
