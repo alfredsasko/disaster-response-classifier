@@ -66,6 +66,7 @@ def go():
     # Use model to predict classification for query
     classification_labels = model.predict([query])[0]
     positive_label_msk = (classification_labels == 1)
+
     classification_results = dict(zip(
         category_names[positive_label_msk],
         classification_labels[positive_label_msk]
@@ -92,8 +93,7 @@ def go():
 
 
 def main():
-    # app.run(host='0.0.0.0', port=3001, debug=True)
-    app.debug = True
+    app.debug = False
     app.run()
 
 
