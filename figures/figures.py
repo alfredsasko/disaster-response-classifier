@@ -3,6 +3,7 @@
 # IMPORTS
 
 # Third party imports
+import sys
 import numpy as np
 import pandas as pd
 from scipy import sparse as sp
@@ -239,15 +240,21 @@ def return_result_figures(model, category_names, classification_labels,
     label_ar = category_names[positive_label_msk]
 
     # Design figure layout
+    rows, cols = 1, 2
     fig_imp = make_subplots(
-        rows=1, cols=2,
+        rows=rows, cols=cols,
         subplot_titles=('TOP {} Detractors / Supporters'.format(TOPK_COEF),
-                        'Message Detractors / Supporters')
+                        'Message Detractors / Supporters'),
+        shared_xaxes='all',
+        horizontal_spacing=0.35 / cols
     )
 
     fig_imp.update_layout(
             title_text=('Explanation of Classification Result for '
-                        + 'the Category "{}"'.format(label_ar[ACTIVE_ITEM])),
+                        + 'the Category "{}"'.format(label_ar[ACTIVE_ITEM])
+                        if label_ar.size != 0
+                        else ('Not able to classify! Message words are not in '
+                              'the corpus of the model.')),
             title_x=0.5
     )
     fig_imp.update_xaxes(title_text='Importance: - detractors / + supporters')
