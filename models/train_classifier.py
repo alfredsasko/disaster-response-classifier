@@ -60,7 +60,10 @@ def load_data(database_filepath, table_name):
     '''
 
     engine = create_engine('sqlite:///' + database_filepath)
-    df = pd.read_sql_table(table_name, con=engine)
+    with engine.connect() as connection:
+        df = pd.read_sql_table(table_name, con=connection)
+
+    engine.dispose()
 
     X = df['message']
     Y = df.drop(columns=['id', 'message', 'original', 'genre'])
